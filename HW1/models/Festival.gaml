@@ -41,6 +41,11 @@ global {
 
 species Guests skills:[moving]{
 //	rgb guestColor <- #green;
+	bool thirsty <- flip(0.5); //50% chance to be thirsty true;
+	bool hungry <- flip(0.5);	//50% chance to be hungry true;
+	//or use int status
+	int status <- rnd (2);    // var0 equals 0, 1 or 2; 0->nothing,1->thirsty,2->hungry
+	
 	aspect default {
 		draw circle(2) color:#green border:#green;
 	}
@@ -55,6 +60,7 @@ species Guests skills:[moving]{
 	reflex goToIc when: statusPoint = nil
 	{
 		do goto target:agentLocation;
+		
 	}
 	
 //	reflex goToStore when: statusPoint != nil
@@ -77,8 +83,17 @@ species Stores {
 }
 
 species Ic {
+	list store_location;
+	init{
+		ask agents of_species Stores{
+			add location to: myself.store_location;
+//			write location;
+		}
+		write store_location;
+	}
 	aspect default {
 		draw rectangle(4, 4) color:#red;
+		
 	} 
 	
 	point Guests;
