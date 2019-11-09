@@ -1,0 +1,131 @@
+/***
+* Name: Festival
+* Author: sigrunarnasigurdardottir
+* Description: 
+* Tags: Tag1, Tag2, TagN
+***/
+
+model Festival
+
+/* Insert your model definition here */
+global {
+	point agentLocation <- {50, 50};
+	init {
+		
+		
+		int addDist <- 0;
+		
+		point storeLocation1 <- {25, 25};
+		create Guests number: 10
+		{
+			//location <- {50 + addDist, 50 + addDist};
+			//addDist <- addDist + 5;
+		}
+		
+		create Stores number: 2 with: (type: "bar")
+		{
+			//location <- {10 + addDist, 10 + addDist};
+			//addDist <- addDist + 10;
+		}
+				create Stores number: 2 with: (type: "restaurant")
+		{
+			//location <- {10 + addDist, 10 + addDist};
+			//addDist <- addDist + 10;
+		}
+		list<Stores> bar <- Stores where (each.type="Bar");
+    	list<Stores> restaurant <- Stores where (each.type="Restaurant");
+    	
+		create Ic number: 1 with: (location: agentLocation)
+		{
+			
+		}
+
+	}
+	
+//	action move (list<agent> movingGuest){
+//		
+//	}
+	
+}
+
+species Guests skills:[moving]{
+//	rgb guestColor <- #green;
+	bool thirsty <- flip(0.5); //50% chance to be thirsty true;
+	bool hungry <- flip(0.5);	//50% chance to be hungry true;
+	//or use int status
+	int status <- rnd (2);    // var0 equals 0, 1 or 2; 0->nothing,1->thirsty,2->hungry
+	
+	aspect default {
+		draw circle(2) color:#green;
+	}
+	aspect ic {
+		draw circle(2) color:#red;
+	} 
+	point statusPoint <- nil;
+	
+//	reflex statusIdle when: statusPoint = nil 
+//	{
+//		do wander;
+//	}
+	
+	reflex goToIc when: status != 0
+	{
+		do goto target:agentLocation;
+		
+	}
+	
+//	reflex goToStore when: statusPoint != nil
+//	{
+//		do goto target:statusPoint;
+//	}
+//	
+//	reflex atStore when: location distance_to(statusPoint) < 2
+//	{
+		
+//	}
+	
+}
+
+species Stores {
+	string type;
+	
+
+	aspect default {
+		draw rectangle(4, 4) color: (type = "bar")? #blue : #yellow;
+	}
+}
+
+species Ic {
+	list store_location;
+	init{
+		ask agents of_species Stores{
+			add location to: myself.store_location;
+//			write location;
+		}
+		write store_location;
+	}
+	aspect default {
+		draw rectangle(4, 4) color:#red;
+		
+	} 
+	
+	point Guests;
+	
+//	reflex get_store when: Guests != nil 
+//	{
+//		do goto target
+//	}
+//	ask Stores at_distance Guests{
+//		
+//	}
+}
+
+experiment festival type:gui{
+	output{
+		display map type: opengl {
+			species Guests;
+			species Stores;
+			species Ic;
+		}
+	}
+}
