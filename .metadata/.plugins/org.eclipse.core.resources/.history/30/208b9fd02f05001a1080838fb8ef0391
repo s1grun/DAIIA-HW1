@@ -1,0 +1,280 @@
+/***
+* Name: Festival
+* Author: sigrunarnasigurdardottir
+* Description: 
+* Tags: Tag1, Tag2, TagN
+***/
+
+model Festival
+
+/* Insert your model definition here */
+global {
+	point agentLocation <- {50, 50};
+	init {
+		
+		
+		int addDist <- 0;
+		
+		point storeLocation1 <- {25, 25};
+		create Guests number: 10
+		{
+			//location <- {50 + addDist, 50 + addDist};
+			//addDist <- addDist + 5;
+		}
+		
+		create Stores number: 2 with: (type: "bar")
+		{
+			//location <- {10 + addDist, 10 + addDist};
+			//addDist <- addDist + 10;
+		}
+				create Stores number: 2 with: (type: "restaurant")
+		{
+			//location <- {10 + addDist, 10 + addDist};
+			//addDist <- addDist + 10;
+		}
+		list<Stores> bar <- Stores where (each.type="Bar");
+    	list<Stores> restaurant <- Stores where (each.type="Restaurant");
+    	
+		create Ic number: 1 with: (location: agentLocation)
+		{
+			
+		}
+
+	}
+	
+//	action move (list<agent> movingGuest){
+//		
+//	}
+	
+}
+
+species Guests skills:[moving]{
+//	rgb guestColor <- #green;
+	bool thirsty <- flip(0.5); //50% chance to be thirsty true;
+	bool hungry <- flip(0.5);	//50% chance to be hungry true;
+	//or use int status
+	int status <- 0;    // var0 equals 0, 1 or 2; 0->nothing,1->thirsty,2->hungry
+	int movingStatus <- 0; // 0-> do wander,1-> go to Ic,2-> go to bar/restaurant,3 -> go back
+	point storeDestination <- nil; // To store the location of a store
+	point returnBack <- rnd({0.0, 0.0, 0.0},{100.0,100.0,0.0});
+	point original_location;
+	list brain_bar;
+	list brain_restaurant;
+	
+	float distance <- float(0);
+	float distance2 <- float(0);
+	
+	aspect default {
+		if(movingStatus=0 or movingStatus=3){
+			draw circle(2) color:#green;
+		}else if(movingStatus=1){
+			draw circle(2) color:#red;
+		}else if(movingStatus=2){
+			if(status=1){
+				draw circle(2) color:#blue;
+			}else{
+				draw circle(2) color:#yellow;
+			}
+			
+		}
+	}
+
+	//point statusPoint <- nil;
+	
+//	reflex statusIdle when: statusPoint = nil 
+//	{
+//		do wander;
+//	}
+	
+	reflex initalize when: status = 0 and movingStatus =0 {
+		
+		do wander;
+		if (flip(0.05)){
+			status <- rnd_choice([0.8,0.1,0.1]);
+			original_location <- location;
+			if status =1{
+				if length(brain_bar) !=0{
+					if(flip(0.5)){ //30% chance to go to ic, or it will use brain
+						movingStatus <- 1;
+					}else{
+						storeDestination <- one_of(brain_bar);
+					distance <-	location distance_to storeDestination + distance;
+						movingStatus <-2;
+					}
+				}else{
+					movingStatus <- 1;
+				}
+				
+			}
+			else if(status =2){
+				if length(brain_restaurant) !=0{
+					if(flip(0.5)){ //30% chance to go to ic, or it will use brain
+						movingStatus <- 1;
+					}else{
+						storeDestination <- one_of(brain_restaurant);
+						distance <-	location distance_to storeDestination + distance;
+						movingStatus <-2;
+					}
+				}else{
+					movingStatus <- 1;
+				}
+				
+			}
+			
+			
+		}
+		
+		
+			
+	}
+	
+	reflex goToIc when: status != 0 and movingStatus =1
+	{
+		
+		do goto target:agentLocation;
+		if(flip(0.5)){
+			ask Guests at_distance(5){
+				if (length(self.brain_bar)!=0 and myself.status = 1){
+					myself.storeDestination <- one_of(self.brain_bar);
+					myself.distance <- myself.original_location distance_to myself.location + myself.distance + myself.location distance_to myself.storeDestination;
+					
+					myself.movingStatus <-2;
+					//write "meet neighbor to "+myself.storeDestination;
+				}else if(length(self.brain_restaurant)!=0 and myself.status = 2){
+					myself.storeDestination <- one_of(self.brain_restaurant);
+					myself.distance <- myself.original_location distance_to myself.location + myself.distance + myself.location distance_to myself.storeDestination;
+					myself.movingStatus <-2;
+					//write "meet neighbor to "+myself.storeDestination;
+				}
+			}
+		}else {
+			distance2 <- original_location distance_to agentLocation + distance2;
+			
+		}
+		
+				
+	}
+	
+	reflex atIc when: ((movingStatus=1) and (location = agentLocation)) {
+		
+		ask Ic {
+			//myself.storeDestination <- self.store_location;
+			if (myself.status=1){
+				myself.storeDestination <- one_of(self.bar);
+				if(myself.brain_bar contains myself.storeDestination){
+					
+				}else{
+					add myself.storeDestination to:myself.brain_bar;
+				}
+				
+//			 write  "go to "+myself.storeDestination;
+			 
+			}else if(myself.status=2){
+				myself.storeDestination <- one_of(self.restaurant);
+//				 write  "go to "+myself.storeDestination;
+				if(myself.brain_restaurant contains myself.storeDestination){
+									
+				}else{
+					add myself.storeDestination to:myself.brain_restaurant;
+				}
+				
+				 
+			}
+ 
+		}
+		distance2 <- location distance_to storeDestination + distance2;
+		movingStatus <- 2;	
+		
+	}
+	
+	reflex goToStore when: movingStatus = 2 and status !=0{
+		do goto target:storeDestination;
+		
+	}
+	
+	reflex inStore when: location=storeDestination and movingStatus =2{
+		movingStatus <-3;
+		status <-0;
+		//write 'distance is:' + distance;
+	}
+	
+	reflex returnback when: movingStatus =3{
+		write 'distance is:' + distance;
+		do goto target:original_location;
+	}
+	
+	reflex inOriginal_location when: movingStatus =3 and location=original_location{
+		 movingStatus <-0;
+	}
+	
+	
+//	reflex goOutOfStore when: status =0{
+//		
+//	}
+//	reflex goToStore when: statusPoint != nil
+//	{
+//		do goto target:statusPoint;
+//	}
+//	
+//	reflex atStore when: location distance_to(statusPoint) < 2
+//	{
+		
+//	}
+	
+}
+
+species Stores {
+	string type;
+	
+
+	aspect default {
+		draw rectangle(4, 4) color: (type = "bar")? #blue : #yellow;
+	}
+}
+
+species Ic {
+	list bar;
+	list restaurant;
+	init{
+		ask agents of_species Stores{
+			if (self.type = "bar"){
+				add location to: myself.bar;
+			}
+			if (self.type = "restaurant"){
+				add location to: myself.restaurant;
+			}
+			
+			
+//			write location;
+		}
+		//write store_location;
+	}
+	aspect default {
+		draw rectangle(4, 4) color:#red;
+		
+	}
+	
+//	action returnStoreLocation (int statusOfGuest) {
+//		return 1;
+//	}
+//	
+//	point Guests;
+	
+//	reflex get_store when: Guests != nil 
+//	{
+//		do goto target
+//	}
+//	ask Stores at_distance Guests{
+//		
+//	}
+}
+
+experiment festival type:gui{
+	output{
+		display map type: opengl {
+			species Guests;
+			species Stores;
+			species Ic;
+		}
+	}
+}

@@ -10,6 +10,9 @@ model Festival
 /* Insert your model definition here */
 global {
 	point agentLocation <- {50, 50};
+	//int environment_size <- 100;
+    //geometry shape <- cube(environment_size);
+    file map_init <- image_file("../includes/data/grass.jpeg");
 	init {
 		
 		
@@ -143,6 +146,8 @@ species Guests skills:[moving]{
 	}
 	
 	
+	
+	
 //	reflex goOutOfStore when: status =0{
 //		
 //	}
@@ -189,11 +194,11 @@ species Ic {
 		
 	}
 	
-	action returnStoreLocation (int statusOfGuest) {
-		return 1;
-	}
-	
-	point Guests;
+//	action returnStoreLocation (int statusOfGuest) {
+//		return 1;
+//	}
+//	
+//	point Guests;
 	
 //	reflex get_store when: Guests != nil 
 //	{
@@ -210,6 +215,15 @@ experiment festival type:gui{
 			species Guests;
 			species Stores;
 			species Ic;
+			//graphics "env" {
+        	//	draw cube(environment_size) color: #black empty: true;
+        	//}
+        
+		}
+		display chart {
+			chart "How often guests get thirsty" {
+				data "thirsty guests" value: length (Guests where (each.status = 1));
+			}
 		}
 	}
 }

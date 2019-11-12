@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;HW1/models/hello.gaml&apos; to &apos;brain.gaml&apos;" description="Rename resource &apos;hello.gaml&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="models/hello.gaml" name="brain.gaml" stamp="1573548587429" updateReferences="true"/>&#x0A;<refactoring comment="Move &apos;grass.jpeg&apos; to &apos;data&apos;" description="Move &apos;grass.jpeg&apos; to &apos;data&apos;" destination="includes/data" element1="includes/grass.jpeg" flags="7" id="org.eclipse.ltk.core.refactoring.move.resources" resources="1" stamp="1573557127700" updateReferences="true"/>
+</session>
